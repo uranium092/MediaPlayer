@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style>
+    #panel {
+      margin-top: 20px;
+      box-shadow: rgb(42, 139, 230) 12px 6px 20px;
+      border: none;
+      display: inline-block;
+      padding: 15px 15px 15px 0px;
+      border-radius: 40px 20px 40px 20px;
+    }
+    #replay {
+      float: left;
+    }
+    #stroke {
+      width: 310px;
+      height: 17px;
+      border: 1px solid black;
+      float: left;
+      margin-top: 2.5px;
+      border-radius: 20px;
+      margin-left: 10px;
+    }
+    #stroke:hover {
+      cursor: pointer;
+    }
+
+    #StrokeVolume {
+      width: 135px;
+      height: 10px;
+      border: 1px solid black;
+      float: left;
+
+      border-radius: 20px;
+    }
+    #StrokeVolume:hover {
+      cursor: pointer;
+    }
+    #fill {
+      height: 17px;
+      border-radius: 20px;
+      background-color: rgb(42, 139, 230);
+      width: 0px;
+    }
+    #time {
+      float: left;
+      margin-top: 2.5px;
+      margin-right: 10px;
+      margin-left: 10px;
+    }
+
+    #replay:hover,
+    #mute:hover {
+      cursor: pointer;
+    }
+    #range {
+      float: left;
+      margin-top: 5px;
+      margin-left: 3px;
+    }
+    output {
+      float: left;
+      margin-top: 3px;
+      margin-left: 15px;
+    }
+    #mute {
+      margin-top: 1px;
+    }
+    #VolumePer {
+      float: left;
+      margin-top: 0px;
+      margin-left: 0px;
+    }
+    #fillVolume {
+      height: 100%;
+      width: 100%;
+      border-radius: 20px;
+      background-color: rgb(42, 139, 230);
+    }
+  </style>
+  <body>
+    <video id="vid" src="videos/syof.mp4" loop width="400px" height="400px"></video>
+
+    <div id="panel">
+      <output id="replay">▶️</output>
+      <div id="stroke">
+        <div id="fill"></div>
+      </div>
+      <output id="time"></output>
+      <output>Tamaño:</output>
+      <input type="range" id="range" min="50" max="800" value="400" />
+
+      <div id="containerVolume">
+        <output id="mute">🔊</output>
+
+        <div id="panelVolume">
+          <div id="StrokeVolume">
+            <div id="fillVolume"></div>
+          </div>
+          <output id="VolumePer"></output>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="jquery-3.7.1.js"></script>
+  <script>
+    let lastVolume = 1;
+    let lastWidth = '135px';
+    let isMuted = false;
+    function setEvents() {
+      document.getElementById('range').addEventListener(
+        'change',
+        function () {
+          VideoObject = document.getElementById('vid');
+          InputObjectValue = document.getElementById('range').value;
+
+          VideoObject.width = InputObjectValue;
+          VideoObject.height = InputObjectValue;
+        },
+        false
+      );
+      document.getElementById('replay').addEventListener('click', replayEvent, false);
+      document.getElementsByTagName('video')[0].addEventListener('click', replayEvent, false);
+
+      setInterval(runningVideo, 100);
+      setInterval(setIconVolume, 1);
+
+      document.getElementById('stroke').addEventListener('click', rewind, false);
+
+      document.getElementById('StrokeVolume').addEventListener(
+        'click',
+        function (event) {
+          coordinates_X_Pointer = event.offsetX;
+
+          fillVolume.style.width = coordinates_X_Pointer + 'px';
+          newVolume = (1 * coordinates_X_Pointer) / 135;
+          vid.volume = newVolume;
+
+          lastVolume = newVolume;
+          lastWidth = event.offsetX + 'px';
+        },
+        false
+      );
+
+      document.getElementById('mute').addEventListener(
+        'click',
+        function () {
+          if (isMuted) {
+            //true
+            vid.volume = lastVolume;
+            fillVolume.style.width = lastWidth;
+            isMuted = false;
+          } else {
+            //false
+            vid.volume = 0;
+            fillVolume.style.width = '0px';
+            isMuted = true;
+          }
+        },
+        false
+      );
+
+      // document.getElementById('mute').addEventListener('mouseover', setFadeVolume, false);
+
+      // document.getElementById('mute').addEventListener('mouseleave', setFadeVolume, false);
+
+      // document
+      //   .getElementById('containerVolume')
+      //   .addEventListener('mouseleave', setFadeVolume, false);
+    }
+    function setFadeVolume() {
+      $('#containerVolume').fadeToggle(200);
+    }
+    function rewind() {
+      let X = event.pageX - document.getElementById('stroke').offsetLeft;
+      let vid = document.getElementsByTagName('video')[0];
+      vid.currentTime = (X * vid.duration) / 310;
+    }
+    function replayEvent() {
+      let video = document.getElementsByTagName('video')[0];
+      if (video.paused) {
+        video.play();
+        replay.innerHTML = '⏸️';
+      } else {
+        video.pause();
+        replay.innerHTML = '▶️';
+      }
+    }
+
+    function runningVideo() {
+      fill.style.width = (vid.currentTime * 310) / vid.duration + 'px';
+      let video = document.getElementsByTagName('video')[0];
+      document.getElementById('time').innerHTML =
+        parseInt((100 * video.currentTime) / video.duration) + '% de 100%';
+    }
+
+    function setIconVolume() {
+      if (vid.volume < 0.2) mute.innerHTML = '🔈';
+      else mute.innerHTML = '🔊';
+      VolumePer.innerHTML = parseInt(100 * vid.volume) + '%';
+    }
+
+    window.addEventListener('load', setEvents, false);
+  </script>
+</html>
